@@ -13,6 +13,10 @@ extend-exclude = ["data_generator.py"]
 # E/W: pycodestyle (PEP 8), F: pyflakes, I: import sorting, D: docstrings
 select = ["E", "W", "F", "I", "D"]
 
+[tool.ruff.lint.isort]
+# wandb creates a local "wandb/" folder, which ruff would otherwise take for project code.
+known-third-party = ["wandb"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
