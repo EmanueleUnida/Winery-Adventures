@@ -170,11 +170,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-pyproject.toml
 .pre-commit-config.yaml
-src/
-winery_adventures/*
-!winery_adventures/__init__.py
 
 
 .ruff_cache/
