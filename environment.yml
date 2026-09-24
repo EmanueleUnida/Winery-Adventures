@@ -1,0 +1,14 @@
+name: winery
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - polars
+  - numba
+  - joblib
+  - pytest
+  - ruff
+  - sphinx
+  - pip
+  - pip:
+      - wandb

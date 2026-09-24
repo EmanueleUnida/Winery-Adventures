@@ -175,3 +175,8 @@ pyproject.toml
 src/
 winery_adventures/*
 !winery_adventures/__init__.py
+
+
+.ruff_cache/
+wandb/
+data/*large*
