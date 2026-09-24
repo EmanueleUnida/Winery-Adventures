@@ -1,0 +1,22 @@
+[tool.pytest.ini_options]
+# The package lives in the repository root, so it is importable without installing it.
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = ["slow: end-to-end tests that run the whole pipeline"]
+
+[tool.ruff]
+line-length = 120
+# Script provided with the project template, not part of our code.
+extend-exclude = ["data_generator.py"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle (PEP 8), F: pyflakes, I: import sorting, D: docstrings
+select = ["E", "W", "F", "I", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests (provided by the course) need neither docstrings nor sorted imports; the empty package __init__ neither.
+"tests/*" = ["D", "I"]
+"__init__.py" = ["D104"]
