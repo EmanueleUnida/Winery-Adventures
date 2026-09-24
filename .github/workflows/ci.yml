@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # Login shell, needed to use the activated conda environment
+        shell: bash -el {0}
+    env:
+      WANDB_MODE: disabled
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          environment-file: environment.yml
+          activate-environment: winery
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Check formatting (ruff)
+        run: ruff format --check .
+
+      - name: Run tests
+        run: pytest
