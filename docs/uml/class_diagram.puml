@@ -1,0 +1,58 @@
+@startuml class_diagram
+!pragma layout smetana
+title Winery Adventures - Class diagram
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+abstract class BaseWineryAnalyzer {
+  {abstract} +analyze_data(df: DataFrame): DataFrame
+}
+
+class WineryTransformer {
+  {static} +STANDARD_TEMPERATURE: float = 26.0
+  {static} +REFERENCE_LITERS: float = 1000.0
+  +tank_info_df: DataFrame | None
+  +__init__(tank_info_df: DataFrame | None = None)
+  +analyze_data(df: DataFrame): DataFrame
+  +add_avg_ph_per_tank(df: DataFrame): DataFrame
+  +add_num_readings_per_tank(df: DataFrame): DataFrame
+  +add_num_readings_per_grape_variety(df: DataFrame): DataFrame
+  +add_temperature_deviation(df: DataFrame): DataFrame
+  {static} -_require_columns(df: DataFrame, columns: list[str])
+}
+
+class WineryHPCComputations {
+  {static} +REQUIRED_COLUMNS: tuple[str]
+  +n_jobs: int
+  +__init__(n_jobs: int = -1)
+  +analyze_data(df: DataFrame): DataFrame
+  {static} -_compute_tank_stress(tank_id, tank_df: DataFrame, results: dict)
+}
+
+class "pairwise_stress_function" as StressFunction <<Numba @njit function>> {
+  +pairwise_stress_function(pH_vals, temp_vals, quantity_vals): float
+}
+
+class WineryPipeline {
+  +analyzers: list[BaseWineryAnalyzer]
+  +project_name: str
+  +__init__(analyzers: Sequence[BaseWineryAnalyzer], project_name: str)
+  +run(df: DataFrame, log_to_wandb: bool = False): DataFrame
+  +log_to_wandb(df: DataFrame): None
+}
+
+class "main" as Main <<module>> {
+  +run_full_pipeline(input_csv, tank_info_csv, output_csv, project_name): DataFrame
+  +main(): None
+  -_read_tsv(path: str): DataFrame
+}
+
+BaseWineryAnalyzer <|-- WineryTransformer
+BaseWineryAnalyzer <|-- WineryHPCComputations
+WineryPipeline o-- "0..*" BaseWineryAnalyzer : analyzers
+WineryHPCComputations ..> StressFunction : uses
+Main ..> WineryPipeline : creates and runs
+Main ..> WineryTransformer : creates
+Main ..> WineryHPCComputations : creates
+
+@enduml

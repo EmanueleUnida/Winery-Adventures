@@ -1,0 +1,59 @@
+@startuml sequence_diagram
+title Winery Adventures - Sequence diagram of run_full_pipeline
+skinparam shadowing false
+autonumber
+
+actor "Data analyst" as User
+participant "main" as Main
+participant ":WineryTransformer" as Tr
+participant ":WineryHPCComputations" as Hpc
+participant ":WineryPipeline" as Pipe
+participant "pairwise_stress_function\n(Numba)" as Stress
+participant "wandb" as Wandb
+database "results.csv" as Out
+
+User -> Main : run_full_pipeline(input_csv, tank_info_csv,\noutput_csv, project_name)
+activate Main
+Main -> Main : _read_tsv(input_csv)
+opt tank_info_csv provided
+  Main -> Main : _read_tsv(tank_info_csv)\nsplit grape_variety on ","
+end
+Main -> Tr ** : create(tank_info_df)
+Main -> Hpc ** : create()
+Main -> Pipe ** : create([transformer, hpc], project_name)
+
+Main -> Pipe : run(sensors_df, log_to_wandb=True)
+activate Pipe
+
+Pipe -> Tr : analyze_data(df)
+activate Tr
+Tr -> Tr : add_avg_ph_per_tank(df)
+Tr -> Tr : add_num_readings_per_tank(df)
+Tr -> Tr : add_temperature_deviation(df)
+opt tank_info_df is not None
+  Tr -> Tr : add_num_readings_per_grape_variety(df)
+end
+Tr --> Pipe : transformed df
+deactivate Tr
+
+Pipe -> Hpc : analyze_data(df)
+activate Hpc
+loop for each tank (in parallel with joblib)
+  Hpc -> Stress : pairwise_stress_function(pH, temp, quantity)
+  Stress --> Hpc : stress
+end
+Hpc --> Pipe : df with stress_score
+deactivate Hpc
+
+Pipe -> Pipe : log_to_wandb(df)
+Pipe -> Wandb : init(project)
+Pipe -> Wandb : log({"stress_score": mean})
+Pipe -> Wandb : finish()
+Pipe --> Main : result df
+deactivate Pipe
+
+Main -> Out : write_csv(result df)
+Main --> User : result df
+deactivate Main
+
+@enduml

@@ -1,0 +1,43 @@
+@startuml use_case_diagram
+!pragma layout smetana
+title Winery Adventures - Use case diagram
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+
+actor "Data analyst" as User
+actor "Weights & Biases" as Wandb <<external system>>
+
+rectangle "Winery Adventures" {
+  usecase "Run the analysis pipeline" as UC_Run
+  usecase "Load sensor and tank data\n(TSV files)" as UC_Load
+  usecase "Transform the readings" as UC_Transform
+  usecase "Compute average pH\nper tank" as UC_Ph
+  usecase "Count readings per tank" as UC_Count
+  usecase "Compute temperature\ndeviation" as UC_Temp
+  usecase "Count readings per\ngrape variety" as UC_Grape
+  usecase "Compute fermentation stress" as UC_Stress
+  usecase "Log the results" as UC_Log
+  usecase "Save the results (CSV)" as UC_Save
+}
+
+User --> UC_Run
+UC_Log -- Wandb
+
+UC_Run ..> UC_Load : <<include>>
+UC_Run ..> UC_Transform : <<include>>
+UC_Run ..> UC_Stress : <<include>>
+UC_Run ..> UC_Log : <<include>>
+UC_Run ..> UC_Save : <<include>>
+
+UC_Transform ..> UC_Ph : <<include>>
+UC_Transform ..> UC_Count : <<include>>
+UC_Transform ..> UC_Temp : <<include>>
+UC_Grape ..> UC_Transform : <<extend>>
+
+note right of UC_Grape
+  Only when the tank
+  info file is provided
+end note
+
+@enduml
